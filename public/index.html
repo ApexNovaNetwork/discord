@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ShadowSMP Network Hub v8.0</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+  <div class="app-container">
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-icon">🌑</div>
+        <div class="brand-text">
+          <h2>ShadowSMP</h2>
+          <span>NETWORK HUB v8.0</span>
+        </div>
+      </div>
+
+      <nav class="nav-menu" aria-label="Main Navigation">
+        <button class="nav-item active" onclick="switchTab('dashboard', this)"><i class="fa-solid fa-chart-line"></i> Dashboard</button>
+        <button class="nav-item" onclick="switchTab('players', this)"><i class="fa-solid fa-users"></i> Player Manager</button>
+        <button class="nav-item staff-only" onclick="switchTab('moderation', this)"><i class="fa-solid fa-shield-halved"></i> Moderation</button>
+        <button class="nav-item admin-only" onclick="switchTab('power', this)"><i class="fa-solid fa-power-off"></i> Power &amp; Host</button>
+        <button class="nav-item admin-only" onclick="switchTab('console', this)"><i class="fa-solid fa-terminal"></i> Console</button>
+        <button class="nav-item founder-only" onclick="switchTab('founder', this)"><i class="fa-solid fa-crown"></i> Founder Panel</button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="user-card">
+          <div class="avatar-box" id="avatar-container">
+            <i class="fa-solid fa-circle-user avatar"></i>
+          </div>
+          <div class="user-info">
+            <div class="user-text-details">
+              <span id="user-name-text">Guest Player</span>
+              <span id="user-role-text" class="role-badge role-player">GUEST</span>
+            </div>
+            <button class="btn-xs btn-blue" id="auth-btn" onclick="openAuthModal()"><i class="fa-solid fa-right-to-bracket"></i></button>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- MAIN CONTENT AREA -->
+    <main class="main-content">
+      <header class="top-bar">
+        <div class="server-selector">
+          <label for="server-address"><i class="fa-solid fa-server"></i> Server IP:</label>
+          <input type="text" id="server-address" value="play.shadowsmp.net">
+          <button class="btn btn-blue btn-sm" onclick="fetchLiveServerData()"><i class="fa-solid fa-rotate"></i> Ping Server</button>
+        </div>
+
+        <div class="top-bar-right">
+          <div class="role-indicator-badge" id="role-pill-badge">
+            <i class="fa-solid fa-shield"></i> <span id="role-pill-text">PLAYER MODE</span>
+          </div>
+          <div class="discord-sync-status" id="discord-sync-badge">
+            <i class="fa-brands fa-discord"></i> <span id="discord-sync-text">Bot: Fetching...</span>
+          </div>
+        </div>
+      </header>
+
+      <!-- DASHBOARD TAB -->
+      <div id="tab-dashboard" class="tab-content active">
+        <div class="hero-card card">
+          <div class="hero-details">
+            <h2 id="server-title">ShadowSMP Network</h2>
+            <p id="server-motd" class="text-muted">Fetching live telemetry from server endpoint...</p>
+            <div class="ip-badge-box">
+              <span class="ip-code" id="ip-display">play.shadowsmp.net</span>
+              <button class="btn btn-purple btn-sm" onclick="copyIP()"><i class="fa-solid fa-copy"></i> Copy IP</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="stats-grid margin-top">
+          <div class="stat-card">
+            <div class="stat-icon green"><i class="fa-solid fa-signal"></i></div>
+            <div class="stat-data">
+              <span class="stat-title">Status</span>
+              <span class="stat-value text-green" id="stat-status">PINGING...</span>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon purple"><i class="fa-solid fa-users"></i></div>
+            <div class="stat-data">
+              <span class="stat-title">Online Players</span>
+              <span class="stat-value" id="stat-players">0 / 0</span>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon blue"><i class="fa-solid fa-robot"></i></div>
+            <div class="stat-data">
+              <span class="stat-title">Bot Latency</span>
+              <span class="stat-value" id="stat-bot-ping">--</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="card margin-top">
+          <h3><i class="fa-solid fa-microchip"></i> Server Telemetry</h3>
+          <div class="resource-meters margin-top">
+            <div class="meter-group">
+              <div class="meter-label"><span>CPU Usage</span><span id="cpu-val">24%</span></div>
+              <div class="meter-bar"><div class="meter-fill green" id="cpu-fill" style="width: 24%;"></div></div>
+            </div>
+            <div class="meter-group">
+              <div class="meter-label"><span>RAM Usage</span><span id="ram-val">6.4 GB / 16 GB</span></div>
+              <div class="meter-bar"><div class="meter-fill purple" id="ram-fill" style="width: 40%;"></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PLAYER MANAGER TAB -->
+      <div id="tab-players" class="tab-content">
+        <div class="card">
+          <div class="card-header-flex">
+            <h3><i class="fa-solid fa-users-gear"></i> Active Players</h3>
+            <input type="text" id="player-search" placeholder="Search player..." onkeyup="filterPlayerTable()">
+          </div>
+          <div class="table-wrapper margin-top">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Player</th>
+                  <th>Ping</th>
+                  <th>Rank</th>
+                  <th class="staff-only">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="player-table-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- MODERATION TAB -->
+      <div id="tab-moderation" class="tab-content">
+        <div class="card">
+          <h3><i class="fa-solid fa-user-shield"></i> Moderation Actions</h3>
+          <div class="input-form margin-top">
+            <input type="text" id="mod-target" placeholder="Target Username...">
+            <input type="text" id="mod-reason" placeholder="Reason...">
+            <div class="button-grid">
+              <button class="btn btn-warning" onclick="modAction('kick')">Kick</button>
+              <button class="btn btn-danger" onclick="modAction('ban')">Ban</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- POWER TAB -->
+      <div id="tab-power" class="tab-content">
+        <div class="card">
+          <h3><i class="fa-solid fa-power-off"></i> Server Controls</h3>
+          <div class="button-grid margin-top">
+            <button class="btn btn-green" onclick="powerAction('start')">Start</button>
+            <button class="btn btn-warning" onclick="powerAction('restart')">Restart</button>
+            <button class="btn btn-danger" onclick="powerAction('stop')">Stop</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- CONSOLE TAB -->
+      <div id="tab-console" class="tab-content">
+        <div class="card console-card">
+          <div class="console-header">
+            <span><i class="fa-solid fa-terminal"></i> RCON Console Terminal</span>
+            <button class="btn-xs btn-blue" onclick="clearTerminal()">Clear</button>
+          </div>
+          <div class="terminal-box" id="terminal-output">
+            <div class="log-line info">[SYSTEM] ShadowSMP Unified Engine Initialized.</div>
+          </div>
+          <div class="console-input">
+            <span class="prompt">&gt;</span>
+            <input type="text" id="admin-cmd" placeholder="Execute console command..." onkeydown="handleConsoleKey(event)">
+            <button class="btn btn-danger" onclick="runAdminCommand()">Send</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- FOUNDER TAB -->
+      <div id="tab-founder" class="tab-content">
+        <div class="card founder-card">
+          <h3><i class="fa-solid fa-crown text-gold"></i> Founder God-Mode Controls</h3>
+          <div class="button-grid margin-top">
+            <button class="btn btn-gold" onclick="founderAction('override')">Reset Tokens</button>
+            <button class="btn btn-gold" onclick="founderAction('purge')">Purge System Logs</button>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- AUTHENTICATION MODAL -->
+  <div id="auth-modal" class="modal-overlay">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3><i class="fa-solid fa-user-lock"></i> Account Authentication</h3>
+        <button class="close-modal" onclick="closeAuthModal()">&times;</button>
+      </div>
+
+      <div class="modal-body active">
+        <div class="preset-account-selector margin-top">
+          <label>Quick Presets:</label>
+          <div class="preset-buttons">
+            <button class="btn-xs btn-player" onclick="applyPreset('player')">Player</button>
+            <button class="btn-xs btn-staff" onclick="applyPreset('staff')">Staff</button>
+            <button class="btn-xs btn-admin" onclick="applyPreset('admin')">Admin</button>
+            <button class="btn-xs btn-gold" onclick="applyPreset('founder')">Founder</button>
+          </div>
+        </div>
+
+        <div class="input-group margin-top">
+          <label>Username</label>
+          <input type="text" id="login-username" placeholder="Username...">
+        </div>
+        <div class="input-group margin-top">
+          <label>Password</label>
+          <input type="password" id="login-password" placeholder="Password...">
+        </div>
+        <div class="input-group margin-top">
+          <label>Access Level</label>
+          <select id="login-role">
+            <option value="player">Player</option>
+            <option value="staff">Staff</option>
+            <option value="admin">Admin</option>
+            <option value="founder">Founder</option>
+          </select>
+        </div>
+        <button class="btn btn-purple margin-top full-width" onclick="handleStandardLogin()">Sign In</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
